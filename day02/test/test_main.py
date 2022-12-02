@@ -14,7 +14,7 @@ def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
     assert(part_one(sample_input) == 15)
-    # assert(part_two(sample_input) == 12)
+    assert(part_two(sample_input) == 12)
     
 
 
@@ -24,3 +24,4 @@ def test_big_input(caplog):
         content = f.read()
 
         assert(part_one(content) == 12740)
+        assert(part_two(content) == 11980)

@@ -3,6 +3,7 @@ from enum import Enum
 
 logger = logging.getLogger(__name__)
 
+
 class Shape(Enum):
     ROCK = 1
     PAPER = 2
@@ -24,7 +25,7 @@ class Shape(Enum):
 
 
     @staticmethod
-    def score(shape):
+    def score_of(shape):
         return {
             Shape.ROCK: 1,
             Shape.PAPER: 2,
@@ -72,36 +73,31 @@ def part_one(inp):
         left, right = (Shape.from_letter(x) for x in play.split(" "))
         
         total_score += Outcome(left, right).score()
-        total_score += Shape.score(right)
+        total_score += Shape.score_of(right)
 
-    logger.info(f"Total score: {total_score}")
     return total_score
 
 
-part_two = part_one
-# def part_two(inp):
-#     total_score = 0
+def part_two(inp):
+    total_score = 0
 
-#     for play in inp.splitlines():
-#         left, result = (Shape.from_letter(x) for x in play.split(" "))
+    for play in inp.splitlines():
+        left, result = play.split(" ")
+        left = Shape.from_letter(left)
 
-
-#         if result == 'X':
-#             right = LOSES_AGAINST[left]
-#             logger.info(f"Opponent chooses {LABELS[left]} and I need to lose, I choose {LABELS[right]}, {SHAPE_SCORES[right]} + {OUTCOME_SCORES[-1]}")
+        # Gotta lose
+        if result == 'X': 
+            right = Shape.wins_against(left)
         
-#         elif result == 'Y':
-#             right = TIED_AGAINST[left]
-#             logger.info(f"Opponent chooses {LABELS[left]} and I need to tie, I choose {LABELS[right]}, {SHAPE_SCORES[right]} + {OUTCOME_SCORES[0]}")
+        # Gotta tie
+        elif result == 'Y': 
+            right = left
 
-#         else:
-#             right = WINS_AGAINST[left]
-#             logger.info(f"Opponent chooses {LABELS[left]} and I need to win, I choose {LABELS[right]}, {SHAPE_SCORES[right]} + {OUTCOME_SCORES[1]}")
+        # Gotta win
+        else: 
+            right = Shape.loses_against(left)
 
-#         total_score += OUTCOME_SCORES[OUTCOMES[left][right]]
-#         total_score += SHAPE_SCORES[right]
+        total_score += Outcome(left, right).score()
+        total_score += Shape.score_of(right)
 
-#     logger.info(f"Total score: {total_score}")
-
-    
-#     return total_score
+    return total_score
