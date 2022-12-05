@@ -15,9 +15,9 @@ sample_input = """2-4,6-8
 
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
-    
-    assert(part_one(sample_input) == 2)
-    assert(part_two(sample_input) == 4)
+
+    assert part_one(sample_input) == 2
+    assert part_two(sample_input) == 4
 
 
 def test_big_input(caplog):
@@ -25,5 +25,5 @@ def test_big_input(caplog):
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        assert(part_one(content) == 644)
-        assert(part_two(content) == 926)        
+        assert part_one(content) == 644
+        assert part_two(content) == 926

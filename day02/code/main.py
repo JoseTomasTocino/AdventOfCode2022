@@ -11,50 +11,43 @@ class Shape(Enum):
 
     @staticmethod
     def from_letter(letter):
-        if letter in ('A', 'X'):
+        if letter in ("A", "X"):
             return Shape.ROCK
 
-        elif letter in ('B', 'Y'):
+        elif letter in ("B", "Y"):
             return Shape.PAPER
 
-        elif letter in ('C', 'Z'):
+        elif letter in ("C", "Z"):
             return Shape.SCISSORS
 
         else:
             return NotImplementedError
 
-
     @staticmethod
     def score_of(shape):
-        return {
-            Shape.ROCK: 1,
-            Shape.PAPER: 2,
-            Shape.SCISSORS: 3
-        }[shape]
-
+        return {Shape.ROCK: 1, Shape.PAPER: 2, Shape.SCISSORS: 3}[shape]
 
     @staticmethod
     def loses_against(shape):
         return {
             Shape.ROCK: Shape.PAPER,
             Shape.PAPER: Shape.SCISSORS,
-            Shape.SCISSORS: Shape.ROCK
+            Shape.SCISSORS: Shape.ROCK,
         }[shape]
-    
 
     def wins_against(shape):
         return {
             Shape.ROCK: Shape.SCISSORS,
             Shape.PAPER: Shape.ROCK,
-            Shape.SCISSORS: Shape.PAPER
+            Shape.SCISSORS: Shape.PAPER,
         }[shape]
 
 
-class Outcome():
+class Outcome:
     def __init__(self, left: Shape, right: Shape):
         self.left = left
         self.right = right
-    
+
     def score(self):
         if Shape.wins_against(self.left) == self.right:
             return 0
@@ -71,7 +64,7 @@ def part_one(inp):
 
     for play in inp.splitlines():
         left, right = (Shape.from_letter(x) for x in play.split(" "))
-        
+
         total_score += Outcome(left, right).score()
         total_score += Shape.score_of(right)
 
@@ -86,15 +79,15 @@ def part_two(inp):
         left = Shape.from_letter(left)
 
         # Gotta lose
-        if result == 'X': 
+        if result == "X":
             right = Shape.wins_against(left)
-        
+
         # Gotta tie
-        elif result == 'Y': 
+        elif result == "Y":
             right = left
 
         # Gotta win
-        else: 
+        else:
             right = Shape.loses_against(left)
 
         total_score += Outcome(left, right).score()

@@ -23,9 +23,9 @@ sample_input = """1000
 
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
-    
-    assert(part_one(sample_input) == 24000)
-    assert(part_two(sample_input) == 45000)
+
+    assert part_one(sample_input) == 24000
+    assert part_two(sample_input) == 45000
 
 
 def test_big_input(caplog):

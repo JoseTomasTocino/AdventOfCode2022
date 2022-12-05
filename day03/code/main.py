@@ -10,7 +10,7 @@ def part_one(inp):
     acum = 0
 
     for line in inp.splitlines():
-        left, right = line[:len(line) // 2], line[len(line) // 2:]
+        left, right = line[: len(line) // 2], line[len(line) // 2 :]
 
         mismatched_item_type = (set(left) & set(right)).pop()
 
@@ -28,10 +28,12 @@ def part_two(inp):
         group.append(line)
 
         if len(group) == 3:
-            mismatched_item_type = reduce(lambda a, b: a & b, (set(x) for x in group)).pop()
+            mismatched_item_type = reduce(
+                lambda a, b: a & b, (set(x) for x in group)
+            ).pop()
 
             acum += get_priority(mismatched_item_type)
 
             group = []
-    
+
     return acum

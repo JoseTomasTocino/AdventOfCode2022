@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 def solution(inp, partial_overlap=False):
     acum = 0
-    exp = re.compile(r'(\d+)-(\d+),(\d+)-(\d+)')
+    exp = re.compile(r"(\d+)-(\d+),(\d+)-(\d+)")
 
     for line in inp.splitlines():
         a0, a1, b0, b1 = (int(x) for x in exp.match(line).groups())
@@ -23,8 +23,7 @@ def solution(inp, partial_overlap=False):
 
             if a1 >= b0:
                 logger.info("Overlap!")
-                acum +=1
-
+                acum += 1
 
     return acum
 
