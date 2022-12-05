@@ -5,7 +5,7 @@ from pprint import pprint as pp
 logger = logging.getLogger(__name__)
 
 
-def part_one(inp):    
+def solution(inp, use_cratemover_9001=False):    
     stack_lines = []
     movement_lines = []
 
@@ -40,10 +40,18 @@ def part_one(inp):
     for movement in movement_lines:
         elem_count, source, dest = movement_re.match(movement.strip()).groups()
 
-        for i in range(int(elem_count)):
-            stacks[dest].append(stacks[source].pop())
+        # Part one
+        if use_cratemover_9001 == False:
+            for i in range(int(elem_count)):
+                stacks[dest].append(stacks[source].pop())
+
+        # Part two
+        else:
+            elems = [stacks[source].pop() for _ in range(int(elem_count))][::-1]
+            stacks[dest] += elems
     
     return ''.join(x[-1] for x in stacks.values())
 
-def part_two(inp):
-    pass
+
+part_one = lambda x: solution(x, False)
+part_two = lambda x: solution(x, True)
