@@ -17,7 +17,11 @@ def test_sample_input(caplog):
     assert part_one("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg") == 10
     assert part_one("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw") == 11
 
-    # assert part_two(sample_input) == None
+    assert part_two("mjqjpqmgbljsphdztnvjfqwrcgsmlb") == 19
+    assert part_two("bvwbjplbgvbhsrlpgdmjqwftvncz") == 23
+    assert part_two("nppdvjthqldpwncqszvftbrmjlhg") == 23
+    assert part_two("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg") == 29
+    assert part_two("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw") == 26
 
 
 def test_big_input(caplog):
@@ -26,4 +30,4 @@ def test_big_input(caplog):
         content = f.read()
 
         assert(part_one(content) == 1287)
-        # assert(part_two(content) == None)
+        assert(part_two(content) == 3716)
