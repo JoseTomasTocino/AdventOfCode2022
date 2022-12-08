@@ -31,7 +31,7 @@ def compute_size(elem: FSElem):
         return sum(compute_size(x) for x in elem.children.values())
     
 
-def part_one(inp):
+def solution(inp):
     fs = {'/': FSElem(name='/', type=FSElemType.DIR, size=0, children={})}
     cwd = ['/']
     all_directories = [fs['/']]
@@ -88,7 +88,20 @@ def part_one(inp):
         logger.info(f"Calculated size: {d.size}")
 
 
-    return sum(d.size for d in all_directories if d.size <= 100000)
+    answer_a = sum(d.size for d in all_directories if d.size <= 100000)
 
-def part_two(inp):
-    pass
+    total_space = 70000000
+    required_space = 30000000
+    used_space = fs['/'].size
+    unused_space = total_space - used_space
+    still_required = required_space - unused_space
+
+    logger.info(still_required)
+
+    for d in sorted(all_directories, key=lambda x: x.size):
+        if d.size >= still_required:
+            answer_b = d.size
+            break
+
+    return (answer_a, answer_b)
+

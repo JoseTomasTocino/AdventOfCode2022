@@ -1,6 +1,6 @@
 import logging
 import os.path
-from day07.code.main import part_one, part_two
+from day07.code.main import solution
 
 logger = logging.getLogger(__name__)
 local_path = os.path.abspath(os.path.dirname(__file__))
@@ -33,8 +33,9 @@ $ ls
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
-    assert part_one(sample_input) == 95437
-    # assert part_two(sample_input) == None
+    sol_p1, sol_p2 = solution(sample_input)
+    assert sol_p1 == 95437
+    assert sol_p2 == 24933642
 
 
 def test_big_input(caplog):
@@ -42,5 +43,6 @@ def test_big_input(caplog):
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        assert(part_one(content) == 1454188)
-        # assert(part_two(content) == None)
+        sol_p1, sol_p2 = solution(content)
+        assert sol_p1 == 1454188
+        assert sol_p2 == 4183246
