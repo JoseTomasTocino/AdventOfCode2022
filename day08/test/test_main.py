@@ -1,6 +1,6 @@
 import logging
 import os.path
-from day08.code.main import part_one, part_two
+from day08.code.main import solution, part_two
 
 logger = logging.getLogger(__name__)
 local_path = os.path.abspath(os.path.dirname(__file__))
@@ -14,15 +14,20 @@ sample_input = """30373
 
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
+    
+    visible_trees, scenic_score = solution(sample_input)
 
-    assert part_one(sample_input) == 21
-    # assert part_two(sample_input) == None
+    assert visible_trees == 21
+    assert scenic_score == 8
 
 
 def test_big_input(caplog):
     caplog.set_level(logging.INFO)
+
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        assert(part_one(content) == 1717)
-        # assert(part_two(content) == None)
+        visible_trees, scenic_score = solution(content)
+
+        assert visible_trees == 1717
+        assert scenic_score == 321975
