@@ -29,12 +29,12 @@ def compute_size(elem: FSElem):
         return elem.size
     else:
         return sum(compute_size(x) for x in elem.children.values())
-    
+
 
 def solution(inp):
-    fs = {'/': FSElem(name='/', type=FSElemType.DIR, size=0, children={})}
-    cwd = ['/']
-    all_directories = [fs['/']]
+    fs = {"/": FSElem(name="/", type=FSElemType.DIR, size=0, children={})}
+    cwd = ["/"]
+    all_directories = [fs["/"]]
 
     inp = inp.splitlines()
 
@@ -43,18 +43,18 @@ def solution(inp):
 
         if current.startswith("$ cd "):
             dest_dir = current[5:]
-            
-            if dest_dir == '/':
-                cwd = ['/']
 
-            elif dest_dir == '..':
+            if dest_dir == "/":
+                cwd = ["/"]
+
+            elif dest_dir == "..":
                 cwd.pop()
 
             else:
                 cwd.append(dest_dir)
 
             logger.info(f"Moved to directory {cwd[-1]}")
-        
+
         elif current.startswith("$ ls"):
             logger.info(f"Listing the elements of directory {cwd[-1]}")
 
@@ -68,15 +68,18 @@ def solution(inp):
 
                 if current.startswith("dir"):
                     dirname = current[4:]
-                    dir_node[dirname] = FSElem(name=dirname, type=FSElemType.DIR, size=0, children={})
+                    dir_node[dirname] = FSElem(
+                        name=dirname, type=FSElemType.DIR, size=0, children={}
+                    )
 
                     # Keep a reference of all the directories in the fs
                     all_directories.append(dir_node[dirname])
-                
+
                 else:
                     fsize, fname = current.split(" ")
-                    dir_node[fname] = FSElem(name=fname, type=FSElemType.FILE, size=int(fsize), children=None)
-
+                    dir_node[fname] = FSElem(
+                        name=fname, type=FSElemType.FILE, size=int(fsize), children=None
+                    )
 
     # Now compute the sizes of the directories
     logger.info(all_directories)
@@ -87,12 +90,11 @@ def solution(inp):
         d.size = compute_size(d)
         logger.info(f"Calculated size: {d.size}")
 
-
     answer_a = sum(d.size for d in all_directories if d.size <= 100000)
 
     total_space = 70000000
     required_space = 30000000
-    used_space = fs['/'].size
+    used_space = fs["/"].size
     unused_space = total_space - used_space
     still_required = required_space - unused_space
 
@@ -104,4 +106,3 @@ def solution(inp):
             break
 
     return (answer_a, answer_b)
-

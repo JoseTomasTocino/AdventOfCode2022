@@ -29,5 +29,5 @@ def test_big_input(caplog):
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        assert(part_one(content) == 1287)
-        assert(part_two(content) == 3716)
+        assert part_one(content) == 1287
+        assert part_two(content) == 3716

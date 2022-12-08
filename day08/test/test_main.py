@@ -14,7 +14,7 @@ sample_input = """30373
 
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
-    
+
     visible_trees, scenic_score = solution(sample_input)
 
     assert visible_trees == 21

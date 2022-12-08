@@ -19,8 +19,8 @@ move 1 from 1 to 2"""
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
-    assert part_one(sample_input) == 'CMZ'
-    assert part_two(sample_input) == 'MCD'
+    assert part_one(sample_input) == "CMZ"
+    assert part_two(sample_input) == "MCD"
 
 
 def test_big_input(caplog):
@@ -28,5 +28,5 @@ def test_big_input(caplog):
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        assert(part_one(content) == 'QPJPLMNNR')
-        assert(part_two(content) == 'BQDNWJPVJ')
+        assert part_one(content) == "QPJPLMNNR"
+        assert part_two(content) == "BQDNWJPVJ"
