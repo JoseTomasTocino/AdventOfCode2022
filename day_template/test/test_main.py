@@ -1,6 +1,6 @@
 import logging
 import os.path
-from dayXX.code.main import part_one, part_two
+from ..code.main import part_one, part_two
 
 logger = logging.getLogger(__name__)
 local_path = os.path.abspath(os.path.dirname(__file__))
@@ -20,5 +20,5 @@ def test_big_input(caplog):
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        # assert(part_one(content) == None)
-        # assert(part_two(content) == None)
+        # assert part_one(content) == None
+        # assert part_two(content) == None
