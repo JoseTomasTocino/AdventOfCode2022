@@ -15,17 +15,30 @@ L 5
 R 2"""
 
 
+sample_input_2 = """R 5
+U 8
+L 8
+D 3
+R 17
+D 10
+L 25
+U 20"""
+
+
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
     assert part_one(sample_input) == 13
-    assert part_two(sample_input) == None
+    assert part_two(sample_input) == 1
+
+    assert part_two(sample_input_2) == 36
 
 
 def test_big_input(caplog):
-    caplog.set_level(logging.INFO)
+    # caplog.set_level(logging.INFO)
+
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
         assert part_one(content) == 5902
-        # assert(part_two(content) == None)
+        assert part_two(content) == 2445
