@@ -23,6 +23,9 @@ class Node:
     is_end: bool = False
 
     visited: bool = False
+    distance: int = 0
+    pred: Node = None
+
 
     def get_neighbors(self, node_map):
 
@@ -57,14 +60,14 @@ class Node:
 def solution(inp, multiple_starting_points=False):
     matrix = inp.splitlines()
     node_map = defaultdict(dict)
+    all_nodes = []
 
-    node_map_width = len(matrix[0])
-    node_map_height = len(matrix)
-
-    logger.info(f"Map size is {node_map_width}x{node_map_height}")
+    logger.info(f"Map size is {len(matrix[0])}x{len(matrix)}")
 
     start_position = None
     end_position = None
+
+    # Generate Node instances from input matrix
 
     for y, row in enumerate(matrix):
         for x, elem in enumerate(row):
@@ -76,80 +79,62 @@ def solution(inp, multiple_starting_points=False):
                 is_start = True
                 elem = "a"
 
-                start_position = Point(x, y)
-
             elif elem == "E":
                 is_end = True
                 elem = "z"
 
-                end_position = Point(x, y)
-
-            node_map[x][y] = Node(
+            the_node = Node(
                 height=ord(elem), position=Point(x, y), is_start=is_start, is_end=is_end
             )
 
+            node_map[x][y] = the_node
+            all_nodes.append(the_node)
+
+
     # Compute neighbors
-
     path_lengths = []
-    starting_points = []
 
-    if multiple_starting_points:
-        logger.info(f"Finding starting points...")
+    start_node:Node = next(x for x in all_nodes if x.is_start)
+    end_node:Node = next(x for x in all_nodes if x.is_end)
 
-        for i in node_map.values():
-            for n in i.values():
-                if n.height == ord('a'):
-                    starting_points.append(n.position)
-                    logger.info(f"    Starting at {n.position}")
+    start_node.visited = True
+    start_node.distance = 0
+    start_node.pred = None
 
-    else:
-        starting_points.append(start_position)
+    queue = [start_node]
+    found = False
 
+    logger.info(f"Starting at {start_node.position}")
 
-    for start_position in starting_points:
+    while queue and not found:
+        current = queue.pop(0)
 
-        logger.info(f"Starting at {start_position}")
+        logger.info(f"Visited {current.position}, height={current.height}")
 
-        node: Node = node_map[start_position.x][start_position.y]
-        node.visited = True
+        n:Node
+        for n in current.get_neighbors(node_map=node_map):
+            if not n.visited:
+                n.visited = True
+                n.distance = 1 + current.distance
+                n.pred = current
 
-        queue = [node]
-        distances = defaultdict(dict)
-        pred = defaultdict(dict)
+                queue.append(n)
 
-        distances[start_position.x][start_position.y] = 0
-
-        found = False
-
-        while queue and not found:
-            current = queue.pop(0)
-
-            logger.info(f"Visited {current.position}, height={current.height}")
-
-            for n in current.get_neighbors(node_map=node_map):
-                if not n.visited:
-                    n.visited = True
-
-                    distances[n.position.x][n.position.y] = 1 + distances[current.position.x][current.position.y]
-                    pred[n.position.x][n.position.y] = current
-
-                    queue.append(n)
-
-                    if n.is_end:
-                        found = True
-                        break
+                if n.is_end:
+                    found = True
+                    break
 
 
-        steps = 0
-        pos = end_position
+    steps = 0
 
-        while pos != start_position:
-            pos = pred[pos.x][pos.y].position
-            steps += 1
+    node:Node = end_node
+    while node != start_node:
+        node = node.pred        
+        steps += 1
 
-        logger.info(f"There are {steps} steps from end position at {end_position} to start position at {start_position}")
+    logger.info(f"There are {steps} steps from end position at {end_node.position} to start position at {start_node.position}")
 
-        path_lengths.append(steps)
+    path_lengths.append(steps)
 
     return min(path_lengths)
 
