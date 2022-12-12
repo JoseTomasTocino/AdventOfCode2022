@@ -35,16 +35,17 @@ Monkey 3:
 
 
 def test_sample_input(caplog):
-    caplog.set_level(logging.INFO)
+    # caplog.set_level(logging.CRITICAL)
 
     assert part_one(sample_input) == 10605
-    # assert part_two(sample_input) == None
+    assert part_two(sample_input) == 2713310158
 
 
 def test_big_input(caplog):
-    caplog.set_level(logging.INFO)
+    # caplog.set_level(logging.CRITICAL)
+
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
         assert part_one(content) == 50172
-        # assert part_two(content) == None
+        assert part_two(content) == 11614682178
