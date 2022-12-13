@@ -2,7 +2,9 @@ from __future__ import annotations
 from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass, field
+from itertools import chain
 import logging
+from random import shuffle
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,7 @@ class Node:
     height: str
     position: Point
     neighbors: list[Node] = field(default_factory=list)
+    reverse_neighbors: list[Node] = field(default_factory=list)
 
     is_start: bool = False
     is_end: bool = False
@@ -27,7 +30,7 @@ class Node:
     pred: Node = None
 
 
-    def get_neighbors(self, node_map):
+    def compute_neighbors(self, node_map):
 
         map_height = len(next(iter(node_map.values())))
         map_width = len(node_map.values())
@@ -47,11 +50,13 @@ class Node:
             neighbors.append(node_map[self.position.x][self.position.y + 1])
 
         neighbors = [x for x in neighbors if self.height >= x.height - 1]
-        # neighbors = [x for x in neighbors if self.height <= x.height + 1]
 
-        logger.info(f"Neighbors of {self.position} are {[x.position for x in neighbors]}")
+        for neighbor in neighbors:
+            neighbor.reverse_neighbors.append(self)
 
-        return neighbors
+        # logger.info(f"Neighbors of {self.position} are {[x.position for x in neighbors]}")
+
+        self.neighbors = neighbors
 
 
 def solution(inp, multiple_starting_points=False):
@@ -62,7 +67,6 @@ def solution(inp, multiple_starting_points=False):
     logger.info(f"Map size is {len(matrix[0])}x{len(matrix)}")
 
     # Generate Node instances from input matrix
-
     for y, row in enumerate(matrix):
         for x, elem in enumerate(row):
 
@@ -86,16 +90,28 @@ def solution(inp, multiple_starting_points=False):
 
 
     # Compute neighbors
+    for node in all_nodes:
+        node.compute_neighbors(node_map)
+
+        logger.info(f"Node at {node.position} neighbors are: {[x.position for x in node.neighbors]}")
+
     path_lengths = []
 
     #####################################
     # REVERS'a'roooooo
 
-    # start_node:Node = next(x for x in all_nodes if x.is_end)
-    # end_node:Node = next(x for x in all_nodes if x.is_start)
+    # Normal
+    # start_node:Node = next(x for x in all_nodes if x.is_start)
+    # end_node:Node = next(x for x in all_nodes if x.is_end)
 
-    start_node:Node = next(x for x in all_nodes if x.is_start)
-    end_node:Node = next(x for x in all_nodes if x.is_end)
+    # Reversed
+    start_node:Node = next(x for x in all_nodes if x.is_end)
+    end_node:Node = next(x for x in all_nodes if x.is_start)
+
+    for node in all_nodes:
+        node.neighbors, node.reverse_neighbors = node.reverse_neighbors, node.neighbors
+        logger.info(f"Node at {node.position} reverse neighbors are {[x.position for x in node.reverse_neighbors]}")
+    
 
     #####################################
 
@@ -114,7 +130,7 @@ def solution(inp, multiple_starting_points=False):
         logger.info(f"Visited {current.position}, height={current.height}")
 
         n:Node
-        for n in current.get_neighbors(node_map=node_map):
+        for n in current.neighbors:
             if not n.visited:
                 n.visited = True
                 n.distance = 1 + current.distance
@@ -133,6 +149,8 @@ def solution(inp, multiple_starting_points=False):
         pekers = [node for node in all_nodes if node.height == ord('a')]
     else:
         pekers = [end_node]
+
+    shuffle(pekers)
 
     for node in pekers:
         nn = node

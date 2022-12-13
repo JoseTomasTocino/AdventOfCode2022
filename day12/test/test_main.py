@@ -27,7 +27,7 @@ def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
     assert part_one(sample_input) == 31
-    # assert part_two(sample_input) == 29
+    assert part_two(sample_input) == 29
 
 
 def test_big_input(caplog):
