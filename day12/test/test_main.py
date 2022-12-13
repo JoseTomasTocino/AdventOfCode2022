@@ -1,6 +1,6 @@
 import logging
 import os.path
-from ..code.main import part_one, part_two
+from ..code.main import part_one, part_two, Node, Point
 
 logger = logging.getLogger(__name__)
 local_path = os.path.abspath(os.path.dirname(__file__))
@@ -10,6 +10,16 @@ abcryxxl
 accszExk
 acctuvwj
 abdefghi"""
+
+
+# def test_neighbor_generation(caplog):
+#     caplog.set_level(logging.INFO)
+
+#     inp = """Sab
+# abc
+# acE"""
+
+#     assert part_one(inp) == None
 
 
 

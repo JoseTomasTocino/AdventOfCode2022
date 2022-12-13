@@ -35,24 +35,21 @@ class Node:
         neighbors = []
 
         if self.position.x > 0:
-            neighbor:Node = node_map[self.position.x - 1][self.position.y]
-            if neighbor.height <= self.height + 1:
-                neighbors.append(neighbor)
+            neighbors.append(node_map[self.position.x - 1][self.position.y])
 
         if self.position.y > 0:
-            neighbor:Node = node_map[self.position.x][self.position.y - 1]
-            if neighbor.height <= self.height + 1:
-                neighbors.append(neighbor)
+            neighbors.append(node_map[self.position.x][self.position.y - 1])
 
         if self.position.x < map_width - 1:
-            neighbor:Node = node_map[self.position.x + 1][self.position.y]
-            if neighbor.height <= self.height + 1:
-                neighbors.append(neighbor)
+            neighbors.append(node_map[self.position.x + 1][self.position.y])
 
         if self.position.y < map_height - 1:
-            neighbor:Node = node_map[self.position.x][self.position.y + 1]
-            if neighbor.height <= self.height + 1:
-                neighbors.append(neighbor)
+            neighbors.append(node_map[self.position.x][self.position.y + 1])
+
+        neighbors = [x for x in neighbors if self.height >= x.height - 1]
+        # neighbors = [x for x in neighbors if self.height <= x.height + 1]
+
+        logger.info(f"Neighbors of {self.position} are {[x.position for x in neighbors]}")
 
         return neighbors
 
@@ -63,9 +60,6 @@ def solution(inp, multiple_starting_points=False):
     all_nodes = []
 
     logger.info(f"Map size is {len(matrix[0])}x{len(matrix)}")
-
-    start_position = None
-    end_position = None
 
     # Generate Node instances from input matrix
 
@@ -94,8 +88,16 @@ def solution(inp, multiple_starting_points=False):
     # Compute neighbors
     path_lengths = []
 
+    #####################################
+    # REVERS'a'roooooo
+
+    # start_node:Node = next(x for x in all_nodes if x.is_end)
+    # end_node:Node = next(x for x in all_nodes if x.is_start)
+
     start_node:Node = next(x for x in all_nodes if x.is_start)
     end_node:Node = next(x for x in all_nodes if x.is_end)
+
+    #####################################
 
     start_node.visited = True
     start_node.distance = 0
@@ -120,21 +122,28 @@ def solution(inp, multiple_starting_points=False):
 
                 queue.append(n)
 
-                if n.is_end:
-                    found = True
-                    break
+                # if n.is_end:
+                #     found = True
+                #     break
 
 
     steps = 0
 
-    node:Node = end_node
-    while node != start_node:
-        node = node.pred        
-        steps += 1
+    if multiple_starting_points:
+        pekers = [node for node in all_nodes if node.height == ord('a')]
+    else:
+        pekers = [end_node]
 
-    logger.info(f"There are {steps} steps from end position at {end_node.position} to start position at {start_node.position}")
+    for node in pekers:
+        nn = node
+        # node:Node = end_node
+        while node != start_node:
+            node = node.pred        
+            steps += 1
 
-    path_lengths.append(steps)
+        logger.info(f"There are {steps} steps from end position at {nn.position} to start position at {start_node.position}")
+
+        path_lengths.append(steps)
 
     return min(path_lengths)
 
