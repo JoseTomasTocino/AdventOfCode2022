@@ -3,6 +3,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def matrix_str(matrix):
+    width = len(matrix)
+    height = len(matrix[0])
+
+    lines = []
+    for i in range(width):
+        lines.append(f'{i:3}:' + ''.join([col[i] for col in matrix]))
+
+    return '\n'.join(lines)
+
+
 def part_one(inp):
     topmost = 0
     bottommost = -1
@@ -34,11 +45,14 @@ def part_one(inp):
     grid_width = rightmost - leftmost
     grid_height = bottommost - topmost
 
-    
-    matrix = [['.'] * (grid_width + 3) for _ in range(grid_height + 2)]
+    # Matrix is stored as columns instead of as rows, so that matrix[0][2]
+    # is the position x=0, y=2
+
+    matrix = [['.'] * (grid_height + 2) for _ in range(grid_width + 3)]
+    #matrix = [['.'] * (grid_width + 3) for _ in range(grid_height + 2)]
     
     logger.info(f"{grid_width=} {grid_height=}")
-    logger.info('\n' + '\n'.join([''.join(x) for x in matrix]))
+    logger.info('\n' + matrix_str(matrix))
 
     # Offset everything left to (1, 0)
 
@@ -58,16 +72,16 @@ def part_one(inp):
                 start_y, end_y = end_y, start_y
 
             for y in range(start_y, end_y + 1):
-                matrix[y][start_x] = "#"
+                matrix[start_x][y] = "#"
 
         else:
             if start_x > end_x:
                 start_x, end_x = end_x, start_x
 
             for x in range(start_x, end_x + 1):
-                matrix[start_y][x] = "#"
+                matrix[x][start_y] = "#"
 
-    logger.info('\n' + '\n'.join([''.join(x) for x in matrix]))
+    logger.info('\n' + matrix_str(matrix))
 
             
 
