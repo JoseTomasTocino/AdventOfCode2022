@@ -1,14 +1,29 @@
+from collections import defaultdict
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 def matrix_str(matrix):
-    height = len(matrix[0])
+    min_x, max_x = min(matrix.keys()), max(matrix.keys())
+    min_y, max_y = 0, max(max(x) for x in matrix.values())
+
+    width = max_x + 1
+    height = max_y + 1
+
+    logger.info(f"{min_x=}, {max_x=}")
+    logger.info(f"{min_y=}, {max_y=}")
+    logger.info(f"{width=}, {height=}")
+
+    graph = [['.'] * width for _ in range(height)]
+
+    for x, subm in matrix.items():
+        for y, n in subm.items():
+            graph[y][x] = n
 
     lines = []
-    for i in range(height):
-        lines.append(f'{i:3} ' + ''.join([col[i] for col in matrix]))
+    for i, row in enumerate(graph):
+        lines.append(f'{i:3} ' + ''.join(''.join(row)))
 
     return '\n'.join(lines)
 
@@ -41,17 +56,11 @@ def part_one(inp):
     logger.info(f"{leftmost=}, {rightmost=}")
     logger.info(f"{topmost=}, {bottommost=}")
 
-    grid_width = rightmost - leftmost
-    grid_height = bottommost - topmost
+    # Matrix is a map of nodes (dict of dicts)
+    matrix = defaultdict(lambda: defaultdict(lambda: '.'))
 
-    # Matrix is stored as columns instead of as rows, so that matrix[0][2]
-    # is the position x=0, y=2
-
-    matrix = [['.'] * (grid_height + 2) for _ in range(grid_width + 3)]
-    #matrix = [['.'] * (grid_width + 3) for _ in range(grid_height + 2)]
-    
-    logger.info(f"{grid_width=} {grid_height=}")
-    logger.info('\n' + matrix_str(matrix))
+    floor = bottommost + 2
+    logger.info(f"Floor is at y={floor}")
 
     # Offset everything to the left
     for line in lines:
@@ -60,6 +69,8 @@ def part_one(inp):
 
     # Place every line in the matrix
     for (start_x, start_y), (end_x, end_y) in lines:
+        logger.info(f"Placing line from {start_x},{start_y} to {end_x},{end_y}")
+
         # Vertical
         if start_x == end_x:
             if start_y > end_y:
@@ -79,16 +90,20 @@ def part_one(inp):
 
     # Start the pouring!
     units = 0
-    overflowing = False
+    units_until_overflow = None
+    reached_top = False
 
-    while not overflowing:
+    while not reached_top:
         units += 1
-        logger.info(f"Falling sand unit number {units}")
         
         unit_x = 500 - leftmost + 1
         unit_y = 0
 
         while True:
+            if unit_y == floor - 1:
+                matrix[unit_x][unit_y] = 'o'
+                break
+
             if matrix[unit_x][unit_y + 1] == '.':
                 unit_y += 1
 
@@ -102,14 +117,16 @@ def part_one(inp):
 
             else:
                 matrix[unit_x][unit_y] = 'o'
+
+                if unit_y == 0:
+                    reached_top = True
+
                 break
 
-            if unit_y == bottommost:
-                overflowing = True
-                break
-        
-    logger.info('\n' + matrix_str(matrix))
-    return units - 1
+            if unit_y == bottommost and units_until_overflow is None:
+                units_until_overflow = units - 1
+
+    return units_until_overflow, units
     
 
 def part_two(inp):
