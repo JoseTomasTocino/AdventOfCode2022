@@ -1,3 +1,4 @@
+from functools import cmp_to_key
 from itertools import zip_longest
 import logging
 import re
@@ -6,14 +7,13 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 
-class Outcome(Enum):
-    RIGHT_ORDER = 1
-    CONTINUE_COMPARING = 2
-    WRONG_ORDER = 3
+class Outcome:
+    RIGHT_ORDER = -1
+    CONTINUE_COMPARING = 0
+    WRONG_ORDER = 1
 
 
-def compare(left, right, indent = 0):
-    
+def compare(left, right, indent = 0):    
 
     if left is None:
         logger.info(f"{'  ' * indent}- Compare {left} vs {right}")
@@ -85,4 +85,11 @@ def part_one(inp):
 
 
 def part_two(inp):
-    pass
+    packets = [eval(x) for x in inp.splitlines() if x]
+    packets.append([[2]])
+    packets.append([[6]])
+
+    sorted_packets = list(sorted(packets, key=cmp_to_key(compare)))
+
+    return (sorted_packets.index([[2]]) + 1) * (sorted_packets.index([[6]]) + 1)
+
