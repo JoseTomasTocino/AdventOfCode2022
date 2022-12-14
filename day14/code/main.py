@@ -4,12 +4,11 @@ logger = logging.getLogger(__name__)
 
 
 def matrix_str(matrix):
-    width = len(matrix)
     height = len(matrix[0])
 
     lines = []
-    for i in range(width):
-        lines.append(f'{i:3}:' + ''.join([col[i] for col in matrix]))
+    for i in range(height):
+        lines.append(f'{i:3} ' + ''.join([col[i] for col in matrix]))
 
     return '\n'.join(lines)
 
@@ -54,18 +53,13 @@ def part_one(inp):
     logger.info(f"{grid_width=} {grid_height=}")
     logger.info('\n' + matrix_str(matrix))
 
-    # Offset everything left to (1, 0)
-
+    # Offset everything to the left
     for line in lines:
-        logger.info(line)
         line[0][0] -= leftmost - 1
         line[1][0] -= leftmost - 1
-        logger.info(line)
 
-
+    # Place every line in the matrix
     for (start_x, start_y), (end_x, end_y) in lines:
-        logger.info(f"{start_x=} {start_y=} {end_x=} {end_y=}")
-
         # Vertical
         if start_x == end_x:
             if start_y > end_y:
@@ -83,8 +77,40 @@ def part_one(inp):
 
     logger.info('\n' + matrix_str(matrix))
 
-            
+    # Start the pouring!
+    units = 0
+    overflowing = False
 
+    while not overflowing:
+        units += 1
+        logger.info(f"Falling sand unit number {units}")
+        
+        unit_x = 500 - leftmost + 1
+        unit_y = 0
+
+        while True:
+            if matrix[unit_x][unit_y + 1] == '.':
+                unit_y += 1
+
+            elif matrix[unit_x - 1][unit_y + 1] == '.':
+                unit_x -= 1
+                unit_y += 1
+
+            elif matrix[unit_x + 1][unit_y + 1] == '.':
+                unit_x += 1
+                unit_y += 1
+
+            else:
+                matrix[unit_x][unit_y] = 'o'
+                break
+
+            if unit_y == bottommost:
+                overflowing = True
+                break
+        
+    logger.info('\n' + matrix_str(matrix))
+    return units - 1
+    
 
 def part_two(inp):
     pass

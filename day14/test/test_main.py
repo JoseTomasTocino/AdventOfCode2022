@@ -12,7 +12,7 @@ sample_input = """498,4 -> 498,6 -> 496,6
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
-    assert part_one(sample_input) == None
+    assert part_one(sample_input) == 24
     assert part_two(sample_input) == None
 
 
@@ -21,5 +21,5 @@ def test_big_input(caplog):
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        # assert part_one(content) == None
+        assert part_one(content) == 763
         # assert part_two(content) == None
