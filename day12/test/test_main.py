@@ -12,17 +12,6 @@ acctuvwj
 abdefghi"""
 
 
-# def test_neighbor_generation(caplog):
-#     caplog.set_level(logging.INFO)
-
-#     inp = """Sab
-# abc
-# acE"""
-
-#     assert part_one(inp) == None
-
-
-
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
@@ -37,4 +26,4 @@ def test_big_input(caplog):
         content = f.read()
 
         assert part_one(content) == 481
-        # assert part_two(content) == None
+        assert part_two(content) == 480

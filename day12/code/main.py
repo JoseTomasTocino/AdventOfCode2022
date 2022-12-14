@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from itertools import chain
 import logging
 from random import shuffle
+from .dijkstra import Graph
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +18,10 @@ class Point:
 
 @dataclass
 class Node:
-    height: str
+    number: int
+    height: int
     position: Point
     neighbors: list[Node] = field(default_factory=list)
-    reverse_neighbors: list[Node] = field(default_factory=list)
 
     is_start: bool = False
     is_end: bool = False
@@ -28,7 +29,6 @@ class Node:
     visited: bool = False
     distance: int = 0
     pred: Node = None
-
 
     def compute_neighbors(self, node_map):
 
@@ -49,14 +49,12 @@ class Node:
         if self.position.y < map_height - 1:
             neighbors.append(node_map[self.position.x][self.position.y + 1])
 
-        neighbors = [x for x in neighbors if self.height >= x.height - 1]
-
-        for neighbor in neighbors:
-            neighbor.reverse_neighbors.append(self)
-
-        # logger.info(f"Neighbors of {self.position} are {[x.position for x in neighbors]}")
+        neighbors = [neighbor for neighbor in neighbors if neighbor.height <= self.height + 1]
 
         self.neighbors = neighbors
+
+    def __str__(self) -> str:
+        return f"[{self.number}, {chr(self.height)} @ ({self.position.x}, {self.position.y}){' S ' if self.is_start else ''}{' E ' if self.is_end else ''}]"
 
 
 def solution(inp, multiple_starting_points=False):
@@ -64,11 +62,20 @@ def solution(inp, multiple_starting_points=False):
     node_map = defaultdict(dict)
     all_nodes = []
 
-    logger.info(f"Map size is {len(matrix[0])}x{len(matrix)}")
+    map_width = len(matrix[0])
+    map_height = len(matrix)
+
+    logger.info(f"Map size is {map_width}x{map_height}")
+
+    g = Graph(map_width * map_height)
+
+    start_node = None
+    end_node = None
 
     # Generate Node instances from input matrix
     for y, row in enumerate(matrix):
         for x, elem in enumerate(row):
+            node_number = y * map_width + x
 
             is_start = False
             is_end = False
@@ -76,94 +83,45 @@ def solution(inp, multiple_starting_points=False):
             if elem == "S":
                 is_start = True
                 elem = "a"
+                start_node = node_number
 
             elif elem == "E":
                 is_end = True
                 elem = "z"
+                end_node = node_number
 
-            the_node = Node(
+            the_node = Node(number=node_number,
                 height=ord(elem), position=Point(x, y), is_start=is_start, is_end=is_end
             )
 
             node_map[x][y] = the_node
             all_nodes.append(the_node)
 
+            logger.info(f"Processed node {the_node}")
+
+    logger.info(f"Start node is node number {start_node}")
+    logger.info(f"End node is node number {end_node}")
 
     # Compute neighbors
+    node: Node
     for node in all_nodes:
         node.compute_neighbors(node_map)
 
-        logger.info(f"Node at {node.position} neighbors are: {[x.position for x in node.neighbors]}")
+        neighbor: Node
+        for neighbor in node.neighbors:
+            # Edge is inverted because we need to walk backwards from end to start
+            #g.add_edge(node.number, neighbor.number, 1)
+            logger.info(f"Added edge between {neighbor} and {node}")
+            g.add_edge(neighbor.number, node.number, 1)
 
-    path_lengths = []
+        logger.info(f"Node {node} neighbors are: {', '.join(str(x) for x in node.neighbors)}")
 
-    #####################################
-    # REVERS'a'roooooo
-
-    # Normal
-    # start_node:Node = next(x for x in all_nodes if x.is_start)
-    # end_node:Node = next(x for x in all_nodes if x.is_end)
-
-    # Reversed
-    start_node:Node = next(x for x in all_nodes if x.is_end)
-    end_node:Node = next(x for x in all_nodes if x.is_start)
-
-    for node in all_nodes:
-        node.neighbors, node.reverse_neighbors = node.reverse_neighbors, node.neighbors
-        logger.info(f"Node at {node.position} reverse neighbors are {[x.position for x in node.reverse_neighbors]}")
-    
-
-    #####################################
-
-    start_node.visited = True
-    start_node.distance = 0
-    start_node.pred = None
-
-    queue = [start_node]
-    found = False
-
-    logger.info(f"Starting at {start_node.position}")
-
-    while queue and not found:
-        current = queue.pop(0)
-
-        logger.info(f"Visited {current.position}, height={current.height}")
-
-        n:Node
-        for n in current.neighbors:
-            if not n.visited:
-                n.visited = True
-                n.distance = 1 + current.distance
-                n.pred = current
-
-                queue.append(n)
-
-                # if n.is_end:
-                #     found = True
-                #     break
-
-
-    steps = 0
+    d = g.dijkstra(end_node)
 
     if multiple_starting_points:
-        pekers = [node for node in all_nodes if node.height == ord('a')]
+        return min(d[x.number] for x in all_nodes if x.height == ord('a'))
     else:
-        pekers = [end_node]
-
-    shuffle(pekers)
-
-    for node in pekers:
-        nn = node
-        # node:Node = end_node
-        while node != start_node:
-            node = node.pred        
-            steps += 1
-
-        logger.info(f"There are {steps} steps from end position at {nn.position} to start position at {start_node.position}")
-
-        path_lengths.append(steps)
-
-    return min(path_lengths)
+        return d[start_node]
 
 
 part_one = lambda inp: solution(inp, multiple_starting_points=False)
