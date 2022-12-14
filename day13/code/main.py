@@ -13,7 +13,7 @@ class Outcome:
     WRONG_ORDER = 1
 
 
-def compare(left, right, indent = 0):    
+def compare(left, right, indent=0):
 
     if left is None:
         logger.info(f"{'  ' * indent}- Compare {left} vs {right}")
@@ -73,7 +73,7 @@ def part_one(inp):
 
         if outcome == Outcome.RIGHT_ORDER:
             logger.info("Right order")
-            correct_pair_indices.append(i+1)
+            correct_pair_indices.append(i + 1)
         elif outcome == Outcome.WRONG_ORDER:
             logger.info("Wrong order")
         else:
@@ -92,4 +92,3 @@ def part_two(inp):
     sorted_packets = list(sorted(packets, key=cmp_to_key(compare)))
 
     return (sorted_packets.index([[2]]) + 1) * (sorted_packets.index([[6]]) + 1)
-

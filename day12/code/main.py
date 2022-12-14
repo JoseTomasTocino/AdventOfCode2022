@@ -49,7 +49,9 @@ class Node:
         if self.position.y < map_height - 1:
             neighbors.append(node_map[self.position.x][self.position.y + 1])
 
-        neighbors = [neighbor for neighbor in neighbors if neighbor.height <= self.height + 1]
+        neighbors = [
+            neighbor for neighbor in neighbors if neighbor.height <= self.height + 1
+        ]
 
         self.neighbors = neighbors
 
@@ -90,8 +92,12 @@ def solution(inp, multiple_starting_points=False):
                 elem = "z"
                 end_node = node_number
 
-            the_node = Node(number=node_number,
-                height=ord(elem), position=Point(x, y), is_start=is_start, is_end=is_end
+            the_node = Node(
+                number=node_number,
+                height=ord(elem),
+                position=Point(x, y),
+                is_start=is_start,
+                is_end=is_end,
             )
 
             node_map[x][y] = the_node
@@ -110,20 +116,21 @@ def solution(inp, multiple_starting_points=False):
         neighbor: Node
         for neighbor in node.neighbors:
             # Edge is inverted because we need to walk backwards from end to start
-            #g.add_edge(node.number, neighbor.number, 1)
+            # g.add_edge(node.number, neighbor.number, 1)
             logger.info(f"Added edge between {neighbor} and {node}")
             g.add_edge(neighbor.number, node.number, 1)
 
-        logger.info(f"Node {node} neighbors are: {', '.join(str(x) for x in node.neighbors)}")
+        logger.info(
+            f"Node {node} neighbors are: {', '.join(str(x) for x in node.neighbors)}"
+        )
 
     d = g.dijkstra(end_node)
 
     if multiple_starting_points:
-        return min(d[x.number] for x in all_nodes if x.height == ord('a'))
+        return min(d[x.number] for x in all_nodes if x.height == ord("a"))
     else:
         return d[start_node]
 
 
 part_one = lambda inp: solution(inp, multiple_starting_points=False)
 part_two = lambda inp: solution(inp, multiple_starting_points=True)
-
