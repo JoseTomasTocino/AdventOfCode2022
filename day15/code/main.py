@@ -43,7 +43,6 @@ class Sensor:
         points = set()
 
         x_coords = list(range(self.x - self.dist - 1, self.x + self.dist + 2))
-        logger.info(x_coords)
 
         for x in x_coords:
             # Solve y1 from the manhattan equation
@@ -76,7 +75,7 @@ def part_one(inp, is_big_input=False):
     if is_big_input:
         y_search = 2000000
         beacon_max_coord = 4000000
-        
+
     else:
         y_search = 10
         beacon_max_coord = 20
@@ -94,62 +93,68 @@ def part_one(inp, is_big_input=False):
         sensor_x, sensor_y, beacon_x, beacon_y = match.groups()
         sensor = Sensor(sensor_x, sensor_y, beacon_x, beacon_y)
         sensors.append(sensor)
-        logger.warning(sensor)
+
+        logger.info(sensor)
 
     # Find leftmost and rightmost coverage areas to know the horizontal range to search
     leftmost = min(sensor.x - sensor.dist for sensor in sensors)
     rightmost = max(sensor.x + sensor.dist for sensor in sensors)
-
-    for sensor in sensors:
-        logger.info(sensor)
 
     logger.info(f"Leftmost coverage reach at x={leftmost}")
     logger.info(f"Rightmost coverage reach at x={rightmost}")
 
     coverage_spots = 0
 
-    # logger.warning(f"Performing coverage search from x={leftmost} to x={rightmost} at row {y_search}")
-    # for x in range(leftmost, rightmost + 1):
-    #     if any(sensor.within_coverage(Point(x, y_search)) for sensor in sensors):
-    #         coverage_spots += 1
+    logger.warning(
+        f"Performing coverage search from x={leftmost} to x={rightmost} at row {y_search}"
+    )
+    for x in range(leftmost, rightmost + 1):
+        if any(sensor.within_coverage(Point(x, y_search)) for sensor in sensors):
+            coverage_spots += 1
 
     # Part two
     possible_positions = []
 
     logger.warning("Computing the perimeter of all sensors")
-    all_perimeters = [sensor.perimeter() for sensor in sensors]
+    # all_perimeters = [sensor.perimeter() for sensor in sensors]
 
-    # for perimeter in all_perimeters:
-    #     for point in perimeter:
-    #         if any(s.within_coverage(point[0], point[1]) for s in sensors):
-    #             break
-    #         possible_positions.append(point)
+    all_perimeter_points = set()
 
-    # logger.info(possible_positions)
+    for i, sensor in enumerate(sensors):
+        perimeter_points = sensor.perimeter()
+        logger.info(
+            f"Sensor {i}/{len(sensors)} has {len(perimeter_points)} perimeter points"
+        )
 
-    logger.warning("Filtering perimeter points...")
-    all_perimeter_points = set().union(*all_perimeters)
+        perimeter_points = {
+            p
+            for p in perimeter_points
+            if not any(sensor.within_coverage(p) for sensor in sensors)
+        }
 
-    # Filter out perimeter points contained in coverage areas of any sensor
-    all_perimeter_points = {
-        p
-        for p in all_perimeter_points
-        if not any(sensor.within_coverage(p) for sensor in sensors)
-    }
+        # Filter out perimeter points outside hard-set limits (>= 0, <=20 for part one, <=4000000 for part two)
+        perimeter_points = {
+            p
+            for p in perimeter_points
+            if p.x >= 0
+            and p.x <= beacon_max_coord
+            and p.y >= 0
+            and p.y <= beacon_max_coord
+        }
 
-    # Filter out perimeter points outside hard-set limits (>= 0, <=20 for part one, <=4000000 for part two)
-    all_perimeter_points = {
-        p
-        for p in all_perimeter_points
-        if p.x >= 0
-        and p.x <= beacon_max_coord
-        and p.y >= 0
-        and p.y <= beacon_max_coord
-    }
+        # Filter out perimeter points that match other beacons
+        perimeter_points = {
+            p
+            for p in perimeter_points
+            if not any(p == sensor.beacon for sensor in sensors)
+        }
 
-    # Filter out perimeter points that match other beacons
-    all_perimeter_points = {p for p in all_perimeter_points if not any(p == sensor.beacon for sensor in sensors)}
-    logger.info(all_perimeter_points)
+        logger.info(
+            f"After filtering, this sensor has {len(perimeter_points)} perimeter points"
+        )
+
+        all_perimeter_points |= perimeter_points
+
     the_beacon = all_perimeter_points.pop()
 
     logger.warning(f"The beacon is at {the_beacon}")

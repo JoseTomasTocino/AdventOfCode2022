@@ -45,14 +45,14 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3"""
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
-    # assert part_one(sample_input, False) == (26, 56000011)
+    assert part_one(sample_input, False) == (26, 56000011)
     # assert part_two(sample_input) == None
 
 
 def test_big_input(caplog):
-    caplog.set_level(logging.WARNING)
+    caplog.set_level(logging.INFO)
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        assert part_one(content, True) == 5299855
+        # assert part_one(content, True) == (5299855, 13615843289729)
         # assert part_two(content) == None

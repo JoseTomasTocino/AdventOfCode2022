@@ -15,7 +15,8 @@ class Viz:
         for i in range(pixel_size):
             for j in range(pixel_size):
                 self.window.set_at(
-                    (margin_x + x * pixel_size + i, margin_y + y * pixel_size + j), color
+                    (margin_x + x * pixel_size + i, margin_y + y * pixel_size + j),
+                    color,
                 )
         pygame.display.flip()
         # pygame.time.wait(1)
