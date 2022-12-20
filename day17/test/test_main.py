@@ -11,7 +11,7 @@ def test_sample_input(caplog):
     caplog.set_level(logging.WARNING)
 
     assert part_one(sample_input) == 3068
-    # assert part_two(sample_input) == None
+    assert part_two(sample_input) == 1514285714288
 
 
 def test_big_input(caplog):
@@ -21,4 +21,4 @@ def test_big_input(caplog):
         content = f.read()
 
         assert part_one(content) == 3232
-        # assert part_two(content) == None
+        assert part_two(content) == 1585632183915

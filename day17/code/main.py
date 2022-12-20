@@ -120,11 +120,11 @@ def pp_cg(fun, grid, temp_rock=None):
 DO_VIZ = False
 DRAW_START = False
 DRAW_INTERMEDIATE = False
-DRAW_END = True
+DRAW_END = False
 DRAW_FINAL = True
 
 
-def part_one(inp):
+def part_one(inp, total_rocks=2022):
     peaks = [0] * CAVE_WIDTH
 
     rock_number = 0
@@ -143,7 +143,9 @@ def part_one(inp):
     if DO_VIZ:
         v = Viz()
 
-    while rock_number < 2022:
+    teleported = False
+
+    while rock_number < total_rocks:
         rock_number += 1
         current_rock_type = next(rock_type_iter)
 
@@ -167,26 +169,55 @@ def part_one(inp):
         if DRAW_START:
             pp_cg(logging.warning, collision_grid, rock)
 
-        for mov_i, movement in movement_iter:
+        
+        for current_movement_index, current_movement in movement_iter:
 
-            # peak_delta = tuple([peaks[0] - x for x in peaks])
-            # logger.warning(peak_delta)
+            peak_delta = tuple([peaks[0] - x for x in peaks])
+            memo_key = (peak_delta, current_rock_type, current_movement_index)
 
-            # if (peak_delta, current_rock_type, mov_i) in memo:
-            #     cycle_rock_number, cycle_height = memo[(peak_delta, current_rock_type, mov_i)]
+            if memo_key in memo and not teleported:
+                teleported = True
 
-            #     logger.warning(f"Found cycle between rock number {cycle_rock_number}, h={cycle_height} and {rock_number}, h={max(peaks)}")
+                memo_rock_number, memo_height = memo[memo_key]
 
-            #     cycle_duration = cycle_rock_number - rock_number
+                logger.warning(f"Found cycle between rock number {memo_rock_number}, h={memo_height} and rock number {rock_number}, h={max(peaks)}")
+
+                cycle_duration = rock_number - memo_rock_number
+                cycle_height_gap = max(peaks) - memo_height
+
+                logger.warning(f"Cycle duration is {cycle_duration}, cycle height gap is {cycle_height_gap}")
+
+                remaining_rocks = total_rocks - rock_number
+                remaining_cycles = remaining_rocks // cycle_duration
+                remainder = remaining_rocks - remaining_cycles * cycle_duration
+
+                logger.warning(f"Remaining rocks: {remaining_rocks}, that's {remaining_cycles} cycles + {remainder} rocks")
+
+                # Push everything!
+                height_addendum = remaining_cycles * cycle_height_gap
+                logger.warning(f"Pushing everthing up {height_addendum} units")
                 
-            #     return 0
+                # Push up the elements in the collision grid and the peaks
+                for x, y in ((x, peaks[x]) for x in range(7)):
+                    logger.warning(f"Pushing peak at {x},{y}")
+                    collision_grid[x][y + height_addendum] += collision_grid[x][y]
+                    peaks[x] += height_addendum
 
-            # memo[(peak_delta, current_rock_type, mov_i)] = (rock_number, max(peaks))
+                # Push up the new rock
+                rock.move_by(x=0, y=height_addendum)
+
+                # Increase the rock number
+                rock_number += remaining_cycles * cycle_duration
+
+                logger.warning(f"Teleporting to height={max(peaks)}, rock number={rock_number}")
+                
+            else:
+                memo[memo_key] = (rock_number, max(peaks))
 
             # Lateral movement
             temp_rock = deepcopy(rock)
 
-            if movement == '<':
+            if current_movement == '<':
                 temp_rock.move_by(x=-1, y=0)
                 # logger.info("Jet of gas pushes to the left")
             else:
@@ -194,10 +225,10 @@ def part_one(inp):
                 # logger.info("Jet of gas pushes to the right")
 
             if temp_rock.collides_with(collision_grid):
-                logger.info(f"Movement {movement} had no effect")
+                logger.info(f"Movement {current_movement} had no effect")
             else:
                 # Apply movement to actual rock
-                logger.info(f"Movement {movement} applied")
+                logger.info(f"Movement {current_movement} applied")
                 rock.elems = temp_rock.elems
 
             if DRAW_INTERMEDIATE:
@@ -232,12 +263,6 @@ def part_one(inp):
         for e in rock.elems:
             collision_grid[e.x][e.y] = True
 
-        # # Remove elements in collision grid that are 50 units away from current rock
-        # for x in list(collision_grid.keys()):
-        #     for y in list(collision_grid[x].keys()):
-        #         if y < e.y - 40:
-        #             collision_grid[x].pop(y)
-
         # Update peaks
         for x, h in rock.top_shape():
             peaks[x] = max(peaks[x], h)
@@ -258,4 +283,4 @@ def part_one(inp):
 
 
 def part_two(inp):
-    pass
+    return part_one(inp, 1000000000000)
