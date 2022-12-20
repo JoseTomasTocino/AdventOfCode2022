@@ -19,17 +19,12 @@ class Valve:
     visited: bool = False
 
 
-memo = {}
-
-
-def get_best_approach(graph, minutes, released_pressure, valves, open_valves, current, path):
+def get_best_approach(
+    graph, minutes, released_pressure, valves, open_valves, current, path
+):
     logger.info(
         f"{'  '* (MAX_MINUTES - minutes)}Minutes: {minutes}, {current=}, path: {path}, {released_pressure=}"
     )
-
-    if (current, minutes, frozenset(open_valves)) in memo:
-        logger.info(f"{'  '* (MAX_MINUTES - minutes)}Returning memoed")
-        return memo[(current, minutes, frozenset(open_valves))]
 
     # If all valves are alredy open, just consume the remaining time releasing pressure
     if all(v.open for v in valves.values()):
@@ -49,8 +44,12 @@ def get_best_approach(graph, minutes, released_pressure, valves, open_valves, cu
     approaches = []
 
     # First, consider the approach of not moving anymore
-    approaches.append(released_pressure + minutes * sum(v.flow for v in valves.values() if v.open))
-    logger.info(f"{'  '* (MAX_MINUTES - minutes)}If we don't move anymore, total released pressure when time ends would be: {approaches[-1]}")
+    approaches.append(
+        released_pressure + minutes * sum(v.flow for v in valves.values() if v.open)
+    )
+    logger.info(
+        f"{'  '* (MAX_MINUTES - minutes)}If we don't move anymore, total released pressure when time ends would be: {approaches[-1]}"
+    )
 
     # # Update released pressure according to open valves
     # local_pressure = sum(v.flow for v in valves.values() if v.open)
@@ -66,7 +65,8 @@ def get_best_approach(graph, minutes, released_pressure, valves, open_valves, cu
     for cv in closed_valves:
         cost_to_reach_and_open = distances[cv] + 1
         throughput = (minutes - cost_to_reach_and_open) * valves[cv].flow
-        logger.info(f"{'  '* (MAX_MINUTES - minutes)}Distance from {current} to {cv} is {distances[cv]} minutes + 1 to open the valve = {cost_to_reach_and_open}, throughput: {throughput}"
+        logger.info(
+            f"{'  '* (MAX_MINUTES - minutes)}Distance from {current} to {cv} is {distances[cv]} minutes + 1 to open the valve = {cost_to_reach_and_open}, throughput: {throughput}"
         )
 
         valves_with_throughput.append((cv, throughput))
@@ -75,7 +75,7 @@ def get_best_approach(graph, minutes, released_pressure, valves, open_valves, cu
         sorted(valves_with_throughput, key=lambda x: x[1], reverse=True)
     )
 
-    for cv, throughput in valves_with_throughput:       
+    for cv, throughput in valves_with_throughput:
 
         if throughput <= 0:
             continue
@@ -95,12 +95,14 @@ def get_best_approach(graph, minutes, released_pressure, valves, open_valves, cu
         )
 
         if local_minutes < 0:
-            logger.info(f"{'  '* (MAX_MINUTES - minutes)}Can't travel to {cv}, not enough time.")
-            continue    
+            logger.info(
+                f"{'  '* (MAX_MINUTES - minutes)}Can't travel to {cv}, not enough time."
+            )
+            continue
 
-        logger.info(f"{'  '* (MAX_MINUTES - minutes)}Decision: travel to {cv} and open it, cost: {local_cost}")
-
-
+        logger.info(
+            f"{'  '* (MAX_MINUTES - minutes)}Decision: travel to {cv} and open it, cost: {local_cost}"
+        )
 
         approaches.append(
             get_best_approach(
@@ -110,9 +112,10 @@ def get_best_approach(graph, minutes, released_pressure, valves, open_valves, cu
                 local_valves,
                 local_open_valves,
                 cv,
-                path + [current]
+                path + [current],
             )
         )
+
     if approaches:
         return max(approaches)
 
@@ -120,8 +123,179 @@ def get_best_approach(graph, minutes, released_pressure, valves, open_valves, cu
         return 0
 
 
+def get_best_approach_with_elephant(
+    graph, minutes, released_pressure, valves, open_valves, current, current_elephant, path
+):
+    logger.info(
+        f"{'  '* (MAX_MINUTES - minutes)}Minutes: {minutes}, {current=}, {current_elephant=}, path: {path}, {released_pressure=}"
+    )
 
-def part_one(inp):
+    ################################################################################################################################################
+    ################################################################################################################################################
+    # If all valves are alredy open, just consume the remaining time releasing pressure
+    if all(v.open for v in valves.values()):
+        logger.info(f"{'  '* (MAX_MINUTES - minutes)}All valves are open, just wait")
+        released_pressure += minutes * sum(v.flow for v in valves.values() if v.open)
+        minutes = 0
+
+    if minutes <= 0:
+        logger.info(
+            f"{'  '* (MAX_MINUTES - minutes)}END OF MINUTES, {released_pressure=}, {current=} ##################################################"
+        )
+        return released_pressure
+
+    ################################################################################################################################################
+
+    valve = valves[current]
+    valve.visited = True
+
+    approaches = []
+
+    ################################################################################################################################################
+    # First, consider the approach of not moving anymore for the remaining minutes
+
+    approaches.append(
+        released_pressure + minutes * sum(v.flow for v in valves.values() if v.open)
+    )
+    logger.info(
+        f"{'  '* (MAX_MINUTES - minutes)}If we don't move anymore, total released pressure when time ends would be: {approaches[-1]}"
+    )
+
+    ################################################################################################################################################
+
+
+    closed_valves = [
+        v.name for v in valves.values() if not v.open and v.name != current
+    ]
+    distances = graph.dijkstra(current)
+    
+    valves_with_throughput = [(cv, valves[cv].flow * (minutes - distances[cv] - 1)) for cv in closed_valves]
+    valves_with_throughput = sorted(valves_with_throughput, key=lambda x: x[1], reverse=True)
+
+    current_me = current
+    current_elephant = current
+
+    destination_me = valves_with_throughput[0][0]
+    destination_elephant = valves_with_throughput[1][0]
+
+    remaining_steps_me = distances[destination_me] + 1
+    remaining_steps_elephant = distances[destination_elephant] + 1
+
+    logger.info(f"Initial destination for me: {destination_me}, cost: {remaining_steps_me}")
+    logger.info(f"Initial destination for elephant: {destination_elephant}, cost: {remaining_steps_elephant}")
+
+    while minutes > 1:
+        released_pressure += sum(v.flow for v in valves.values() if v.open)
+
+        remaining_steps_me -= 1
+        remaining_steps_elephant -= 1
+        minutes -= 1
+
+        logger.info(f"Minutes: {minutes}")
+
+        if remaining_steps_me == 0:
+            logger.info(f"I reached destination {destination_me}")
+
+            # Update reached destination
+            valves[destination_me].open = True
+            open_valves.add(destination_me)            
+
+            # Get a new destination
+            distances = graph.dijkstra(current_me)
+
+            closed_valves = [
+                v.name for v in valves.values() if not v.open and v.name != current_me and v.name != destination_elephant
+            ]
+            
+            valves_with_throughput = [(cv, valves[cv].flow * (minutes - distances[cv] - 1)) for cv in closed_valves]
+            valves_with_throughput = sorted(valves_with_throughput, key=lambda x: x[1], reverse=True)
+
+            if valves_with_throughput:
+                destination_me = valves_with_throughput[0][0]
+                remaining_steps_me = distances[destination_me] + 1
+
+                logger.info(f"I received a new destination: {destination_me}, cost: {remaining_steps_me}")
+
+        if remaining_steps_elephant == 0:
+            logger.info(f"Elephant reached destination {destination_elephant}")
+
+            # Update reached destination
+            valves[destination_elephant].open = True
+            open_valves.add(destination_elephant)
+
+            # Get a new destination
+            distances = graph.dijkstra(current_elephant)
+
+            closed_valves = [
+                v.name for v in valves.values() if not v.open and v.name != current_elephant and v.name != destination_me
+            ]
+            
+            valves_with_throughput = [(cv, valves[cv].flow * (minutes - distances[cv] - 1)) for cv in closed_valves]
+            valves_with_throughput = sorted(valves_with_throughput, key=lambda x: x[1], reverse=True)
+
+            if valves_with_throughput:
+                destination_elephant = valves_with_throughput[0][0]
+                remaining_steps_elephant = distances[destination_elephant] + 1
+
+                logger.info(f"Elephant received a new destination: {destination_elephant}, cost: {remaining_steps_elephant}")
+
+    return released_pressure
+
+
+
+        
+
+    
+    # for cv, throughput in valves_with_throughput:
+    #     logger.info((cv, throughput))
+
+    #     if throughput <= 0:
+    #         continue
+
+        # local_cost = distances[cv] + 1
+
+        # local_minutes = minutes - local_cost
+
+        # local_valves = deepcopy(valves)
+        # local_valves[cv].open = True
+
+        # local_open_valves = deepcopy(open_valves)
+        # local_open_valves.add(cv)
+
+        # local_pressure = released_pressure + local_cost * sum(
+        #     v.flow for v in valves.values() if v.open
+        # )
+
+        # if local_minutes < 0:
+        #     logger.info(
+        #         f"{'  '* (MAX_MINUTES - minutes)}Can't travel to {cv}, not enough time."
+        #     )
+        #     continue
+
+        # logger.info(
+        #     f"{'  '* (MAX_MINUTES - minutes)}Decision: travel to {cv} and open it, cost: {local_cost}"
+        # )
+
+        # approaches.append(
+        #     get_best_approach(
+        #         graph,
+        #         local_minutes,
+        #         local_pressure,
+        #         local_valves,
+        #         local_open_valves,
+        #         cv,
+        #         path + [current],
+        #     )
+        # )
+
+    if approaches:
+        return max(approaches)
+
+    else:
+        return 0
+
+
+def bootstrap(inp, use_elephant):
     valve_re = re.compile(
         r"Valve ([A-Z]+?) has flow rate=(\d+); tunnels? leads? to valves? (.*)$"
     )
@@ -155,8 +329,16 @@ def part_one(inp):
     minutes = MAX_MINUTES
 
     logger.info("")
-    return get_best_approach(graph, minutes, 0, valves, set(), starting_valve, [])
+
+    if use_elephant:
+        return get_best_approach_with_elephant(graph, minutes, 0, valves, set(), starting_valve, starting_valve, [])
+    else:
+        return get_best_approach(graph, minutes, 0, valves, set(), starting_valve, [])
+
+
+def part_one(inp):
+    return bootstrap(inp, False)
 
 
 def part_two(inp):
-    pass
+    return bootstrap(inp, True)

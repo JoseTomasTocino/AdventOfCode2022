@@ -18,9 +18,9 @@ Valve JJ has flow rate=21; tunnel leads to valve II"""
 
 
 def test_sample_input(caplog):
-    # caplog.set_level(logging.INFO)
+    caplog.set_level(logging.INFO)
 
-    assert part_one(sample_input) == 1651
+    # assert part_one(sample_input) == 1651
     assert part_two(sample_input) == None
 
 
@@ -30,5 +30,5 @@ def test_big_input(caplog):
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        assert part_one(content) == 2056
+        # assert part_one(content) == 2056
         # assert part_two(content) == None
