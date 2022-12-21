@@ -40,7 +40,13 @@ def test_equality(caplog):
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
-    assert part_one(sample_input) == (64, 58)
+    # assert part_one(sample_input) == (64, 58)
+
+    # 1 x 1 x 1
+    inp = """1,1,1"""
+
+    assert part_one(inp) == (6, 6)
+
 
     # 2 x 2 x 2, no air gaps
     inp = """1,1,1
@@ -206,5 +212,5 @@ def test_big_input(caplog):
         # 1184 for part two is TOO LOW
         # 2058 is invalid
         # 2697 is too high
-        assert part_one(content) == 3542
+        assert part_one(content) == (3542, 2080)
         # assert part_two(content) == None

@@ -27,11 +27,12 @@ def part_one(inp):
 
     cubemap = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: None)))
     cubes = []
-    air_cubes = []
 
     min_x, max_x = 9999, 0
     min_y, max_y = 9999, 0
     min_z, max_z = 9999, 0
+
+    coords = []
 
     for x, y, z in (x.split(",") for x in inp.splitlines()):
         x, y, z = int(x), int(y), int(z)
@@ -47,71 +48,12 @@ def part_one(inp):
         the_cube = Cube(x, y, z)
         cubes.append(the_cube)
         cubemap[x][y][z] = the_cube
+        logger.debug(f"Added cube at {x}, {y}, {z}")
 
-    logger.info(f"{len(cubes)} cubes added")
+        coords.append((x,y,z))
 
-    width = max_x - min_x + 1
-    depth = max_y - min_y + 1
-    height = max_z - min_z + 1
-    area = width * depth * height
-
-    logger.info(f"{min_x=}, {max_x=}")
-    logger.info(f"{min_y=}, {max_y=}")
-    logger.info(f"{min_z=}, {max_z=}")
-    logger.info(f"{width} x {depth} x {height} = {area}")
-
-    # Fill the cubemap with "air" cubes to fill in the voids
-    for x in range(min_x, max_x + 1):
-        for y in range(min_y, max_y + 1):
-            for z in range(min_y, max_z + 1):
-                if cubemap[x][y][z] is None:
-                    the_air_cube = Cube(x, y, z, is_air=True)
-                    cubemap[x][y][z] = the_air_cube
-                    cubes.append(the_air_cube)
-
-    logger.info(f"{len([x for x in cubes if x.is_air])} air cubes")
-
-    # Now we need to search air clusters, starting at each "air cube" to see how much
-    # that air cluster extends. We'll mark the air clusteras bad if we get out of bounds
-    air_clusters = []
-
-    for cube in cubes:
-        if not cube.is_air or cube.visited:
-            continue
-
-        # Use a stack to keep track of adjacent air cubes, that will be visited in the loop below
-        air_cluster_stack = [cube]
-        air_cluster_components = set()
-
-        # This flag marks whether the air cluster is bad (i.e. not enclosed by normal cubes)
-        bad_air_cluster = False
-
-        while air_cluster_stack:
-            piece = air_cluster_stack.pop()
-            piece.visited = True
-
-            air_cluster_components.add((piece.x, piece.y, piece.z))
-
-            # Check neighbours
-            for dx, dy, dz in adjacencies:
-                nx, ny, nz = piece.x + dx, piece.y + dy, piece.z + dz
-
-                # Out of bounds air cluster? mark it as bad
-                if nx < min_x or nx > max_x or ny < min_y or ny > max_y or nz < min_z or nz > max_z:
-                    bad_air_cluster = True
-                    
-
-                neighbour = cubemap[nx][ny][nz]
-
-                if neighbour is None or not neighbour.is_air or neighbour.visited:
-                    continue
-
-                air_cluster_stack.append(neighbour)
-
-        if not bad_air_cluster:
-            air_clusters.append(air_cluster_components)
-
-    logger.info(f"Found {len(air_clusters)} possible air clusters")
+    logger.debug(f"{len(cubes)} cubes added")
+    logger.debug(coords)
 
     # Compute the exposed sides (as in part one)
     exposed_sides = 0
@@ -128,38 +70,61 @@ def part_one(inp):
             if neighbour is None or neighbour.is_air:
                 exposed_sides += 1
 
-    # Now compute the perimeter of the air clusters
-    total_air_clusters_perimeters = 0
+    # For the second part, pick an empty location outside the bounds of the solid
+    # cubes and do a BFS
+    min_x -= 1
+    min_y -= 1
+    min_z -= 1
+    max_x += 1
+    max_y += 1
+    max_z += 1
 
-    for air_cluster in air_clusters:
-        logger.info(f"Processing air cluster, components ({len(air_cluster)}): {air_cluster}")
-        perimeter = 0
+    width = max_x - min_x + 1
+    depth = max_y - min_y + 1
+    height = max_z - min_z + 1
+    area = width * depth * height
 
-        air_cluster_neighbours = set()
+    logger.debug(f"{min_x=}, {max_x=}")
+    logger.debug(f"{min_y=}, {max_y=}")
+    logger.debug(f"{min_z=}, {max_z=}")
+    logger.debug(f"{width} x {depth} x {height} = {area}")
 
-        # if (11, 8, 18) in air_cluster:
-        #     logger.info("SAY WAAAAAA")
-        #     pdb.set_trace()
+    out_of_bounds = lambda x,y,z: x < min_x or x > max_x or y < min_y or y > max_y or z < min_z or z > max_z
 
-        for x, y, z in air_cluster:
-            for dx, dy, dz in adjacencies:
-                neighbour_coords = (x + dx, y + dy, z + dz)
-                if neighbour_coords not in air_cluster:
-                    air_cluster_neighbours.add(neighbour_coords)
+    really_exposed_sides = 0
+    the_stack = [(min_x, min_y, min_z)]
+    visited = set()
 
-        logger.info(f"{len(air_cluster_neighbours)} possible neighbours")
+    while the_stack:
+        x, y, z = the_stack.pop()
 
-        for x, y, z in air_cluster_neighbours:
-            neighbour = cubemap[x][y][z]
-            if not neighbour.is_air:
-                perimeter += 1
+        if (x,y,z) in visited:  
+            continue
+
+        logger.debug(f"Checking {x}, {y}, {z}, {really_exposed_sides=}")
+                
+        visited.add((x,y,z))
+
+        for dx, dy, dz in adjacencies:
+            rx, ry, rz = x + dx, y + dy, z + dz
+
+            if out_of_bounds(rx, ry, rz):
+                logger.debug(f"  Neighbour at {rx}, {ry}, {rz} is out of bounds")
+                continue
+
+            elif (rx,ry,rz) in visited:
+                logger.debug(f"  Neighbour at {rx}, {ry}, {rz} has been visited")
+                continue
+
+            elif cubemap[rx][ry][rz] is not None:
+                logger.debug(f"  Neighbour at {rx}, {ry}, {rz} is a solid cube ####################################")
+                really_exposed_sides += 1
+
             else:
-                pdb.set_trace()
+                logger.debug(f"  Neighbour at {rx}, {ry}, {rz} added to coords to visit")
+                the_stack.append((rx,ry,rz))
 
-        logger.info(f"The perimeter of this air cluster is {perimeter}")
-        total_air_clusters_perimeters += perimeter
-
-    return exposed_sides, exposed_sides - total_air_clusters_perimeters
+    return exposed_sides, really_exposed_sides
 
 
 def part_two(inp):
