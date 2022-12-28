@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Node:
     value: int
+    movement: int
     index: int
     prev: "Node" = None
     next: "Node" = None
@@ -22,6 +23,21 @@ class Node:
         return current
 
 
+    def get_previous(self, steps):
+        current = self
+
+        while steps > 0:
+            steps -= 1
+            current = current.prev
+
+        return current
+
+
+    def __str__(self) -> str:
+        # return f"Node with value={self.value:6}, movement = {self.movement}, prev node = {self.prev.value}, next node = {self.next.value}"
+        return f"Node with value={self.value:6}, prev node = {self.prev.value:6}, next node = {self.next.value:6}"
+
+
 def print_nodes(n: Node) -> None:
     initial = n
     values = []
@@ -35,17 +51,21 @@ def print_nodes(n: Node) -> None:
     logger.info(", ".join(str(x) for x in values))
 
 
-def part_one(inp):
+def solution(inp, multiplier=1, mixing_times=1):
     inp = [int(x) for x in inp.splitlines()]
 
     nodes = []
 
     for i, value in enumerate(inp):
-        # Avoid unnecesary movements
-        value = value % ((1 if value >= 0 else -1) * len(inp))
+        value *= multiplier
 
-        n = Node(value=value, index=i, prev=None, next=None)
+        # Avoid unnecesary movements
+        movement = value % (len(inp) - 1)
+
+        n = Node(value=value, movement=movement, index=i, prev=None, next=None)
         nodes.append(n)
+
+    logger.info(f"Number of nodes {len(nodes)}, unique numbers: {len(set(inp))}")
 
     # Connect nodes
     nodes[0].prev = nodes[-1]
@@ -55,51 +75,47 @@ def part_one(inp):
         nodes[i + 1].prev = nodes[i]
 
     # Mix nodes
-    original = nodes[:]
-    logger.info("Initial arrangement:")
-    print_nodes(nodes[0])
+    for _ in range(mixing_times):
+        for current in nodes:
+            v = current.movement
+            if v == 0:
+                logger.info(f"Ignoring {current.value=} {current.movement=}")
+                # print_nodes(nodes[0])
+                continue
+                    
+            logger.info(f"Moving {current.value=}, {current.movement=}")
+            if v > 0:
+                aux = current.get_next(v)
+            else:
+                aux = current.get_previous(abs(v))
 
-    for current in nodes:
-        v = current.value
-        if v == 0:
-            logger.info(f"Ignoring {v=}")
-            continue
-                
-        logger.info(f"Moving {v=}")
-        aux = current
-        while v != 0:
-            if v < 0:
-                aux = aux.prev
-                v += 1
+            assert current.prev.next == current
+            assert current.next.prev == current
 
-            elif v > 0:
-                aux = aux.next
-                v -= 1
+            # Connect former neighbours together
+            current.prev.next, current.next.prev = current.next, current.prev
 
+            # Insert node in new place
+            #  ###    <--->    ###
+            # becomes:
+            #  ### <-> CUR <-> ###
 
-        # Connect former prev and next together
-        current.prev.next, current.next.prev = current.next, current.prev
+            if current.movement < 0:
+                current.prev = aux.prev
+                current.next = aux
 
-        # Insert node in new place
-        #  ###    <--->    ###
-        # becomes:
-        #  ### <-> ### <-> ###
+                aux.prev = current
 
-        if current.value < 0:
-            current.next = aux
-            current.prev = aux.prev
+            else:
+                current.prev = aux
+                current.next = aux.next
 
-            aux.prev = current
+                aux.next = current
+
             current.prev.next = current
-
-        else:
-            current.prev = aux
-            current.next = aux.next
-
-            aux.next = current
             current.next.prev = current
 
-        print_nodes(nodes[0])
+    print_nodes(nodes[0])
 
     # Find the node with value 0
     node: Node
@@ -111,7 +127,13 @@ def part_one(inp):
     v2 = node.get_next(2000 % len(inp))
     v3 = node.get_next(3000 % len(inp))
 
+    logger.info(f"Number at position 1000 is: {v1.value}")
+    logger.info(f"Number at position 2000 is: {v2.value}")
+    logger.info(f"Number at position 3000 is: {v3.value}")
+
     return v1.value + v2.value + v3.value
 
-def part_two(inp):
-    pass
+
+part_one = lambda x: solution(x, 1, 1)
+part_two = lambda x: solution(x, 811589153, 10)
+
