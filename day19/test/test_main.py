@@ -10,16 +10,16 @@ Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsid
 
 
 def test_sample_input(caplog):
-    # caplog.set_level(logging.INFO)
+    caplog.set_level(logging.WARNING)
 
     assert part_one(sample_input) == 33
-    assert part_two(sample_input) == None
+    # assert part_two(sample_input) == 56 * 62
 
 
 def test_big_input(caplog):
-    caplog.set_level(logging.INFO)
+    # caplog.set_level(logging.INFO)
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        # assert part_one(content) == None
+        # assert part_one(content) == 1262
         # assert part_two(content) == None
