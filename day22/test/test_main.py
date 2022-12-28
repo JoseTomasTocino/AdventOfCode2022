@@ -21,6 +21,15 @@ sample_input = """        ...#
 10R5L5R10L4R5L5"""
 
 
+# sample_input=""".....
+# .....
+# #....
+# #....
+# #....
+# #####
+
+# 3R2L5R15L"""
+
 def test_directions(caplog):
     caplog.set_level(logging.INFO)
 
@@ -43,5 +52,5 @@ def test_big_input(caplog):
         content = f.read()
 
         # 149258 too high
-        assert part_one(content) == None
+        assert part_one(content) == 149250
         # assert part_two(content) == None

@@ -4,6 +4,8 @@ from enum import Enum, IntEnum
 import logging
 import re
 
+from day22.code.visualization import Viz
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,10 +22,6 @@ class Direction(IntEnum):
     @staticmethod
     def turn_counterclockwise(d):
         return Direction((int(d) - 1) % 4)
-
-    @staticmethod
-    def delta(d):
-        return {Direction.Up: (0, -1), Direction.Left: (-1, 0), Direction.Down: (0, 1), Direction.Right: (1, 0)}[d]
 
 
 @dataclass
@@ -50,20 +48,29 @@ class Tile:
         if d == Direction.Right:
             return self.right
 
+DRAW = False
 
 def part_one(inp):
     map: defaultdict[defaultdict[Tile]] = defaultdict(lambda: defaultdict(lambda: None))
     all_tiles = []
 
     path = None
-    h_bounds = {}  # key is row number
-    v_bounds = {}  # key is col number
+    h_bounds = {}  # key is row number (y)
+    v_bounds = {}  # key is col number (x)
+
+
+    if DRAW:
+        v = Viz()
 
     for y, row in enumerate(inp.splitlines()):
+        y += 1
+
         if not row:
             break
 
         for x, item in enumerate(row):
+            x += 1
+
             if item == " ":
                 continue
 
@@ -87,7 +94,7 @@ def part_one(inp):
                 all_tiles.append(t)
 
             elif item == "#":
-                t = Tile(x, y, is_wall=True)
+                t:Tile = Tile(x, y, is_wall=True)
                 map[x][y] = t
                 all_tiles.append(t)
 
@@ -130,34 +137,56 @@ def part_one(inp):
         elif map[x][tile.y + 1] is not None and not map[x][tile.y + 1].is_wall:
             tile.bottom = map[x][tile.y + 1]
 
+
+    if DRAW:
+        for tile in all_tiles:
+            if tile.is_wall:
+                v.set(tile.x, tile.y, (255, 0, 0), False)
+            else:
+                v.set(tile.x, tile.y, (50, 50, 50), False)
+
     # MOVEMENT
-    y = 0
+    y = min(h_bounds.keys())
     x = h_bounds[y][0]
 
     current_direction = Direction.Right
     current_tile: Tile = map[x][y]
 
     logger.info(f"Starting at {x},{y}")
+    if DRAW:
+        v.set(x, y, (255, 255, 255))
 
     path = inp.splitlines()[-1]
+    logger.info(f"Parsing path: {path}")
+    for elem in re.findall(r"(\d+|[RL])", path):
 
-    for steps, turn_to in re.findall(r"(\d+?)([RL])", path):
-        logger.info(f"Movement, {steps} steps, direction: {str(current_direction)}")
-
-        for _ in range(int(steps)):
-            neighbor = current_tile.neighbor(current_direction)
-
-            if neighbor is not None:
-                current_tile = neighbor
-                logger.info(f"Moved to {current_tile.x},{current_tile.y}")
-
-        if turn_to == "L":
+        if 'L' in elem:          
             current_direction = Direction.turn_counterclockwise(current_direction)
+            logger.info(f"Movement, direction: {str(current_direction)}")
+
+        elif 'R' in elem:
+            current_direction = Direction.turn_clockwise(current_direction)
+            logger.info(f"Movement, direction: {str(current_direction)}")
 
         else:
-            current_direction = Direction.turn_clockwise(current_direction)
+            elem = int(elem)
+            logger.info(f"Movement, {elem} steps")
 
-    return 1000 * (current_tile.y + 1) + 4 * (current_tile.x + 1) + current_direction
+            for _ in range(int(elem)):
+                neighbor = current_tile.neighbor(current_direction)
+
+                if neighbor is not None:
+                    current_tile = neighbor
+                    logger.info(f"Moved to {current_tile.x},{current_tile.y}")
+                    if DRAW:
+                        v.set(current_tile.x, current_tile.y, (255, 255, 255))
+
+        
+    if DRAW:
+        v.set(current_tile.x, current_tile.y, (0, 0, 255))
+        v.run()
+
+    return 1000 * current_tile.y + 4 * current_tile.x + current_direction
 
 
 def part_two(inp):
