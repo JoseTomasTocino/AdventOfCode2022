@@ -1,6 +1,6 @@
 import logging
 import os.path
-from ..code.main import part_one, part_two
+from ..code.main import part_one, solve_polish
 
 logger = logging.getLogger(__name__)
 local_path = os.path.abspath(os.path.dirname(__file__))
@@ -25,8 +25,14 @@ hmdt: 32"""
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
-    assert part_one(sample_input) == 152
+    assert part_one(sample_input) == (152, 301)
     # assert part_two(sample_input) == None
+
+
+def test_polish_solver(caplog):
+    caplog.set_level(logging.INFO)
+
+    assert solve_polish(['+', '/', '+', 4, '*', 2, '-', 5, 3, 4, '*', '-', 32, 2, 5]) == 152
 
 
 def test_big_input(caplog):
@@ -34,5 +40,5 @@ def test_big_input(caplog):
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        assert part_one(content) == 157714751182692
+        assert part_one(content) == (157714751182692, 3373767893067)
         # assert part_two(content) == None
